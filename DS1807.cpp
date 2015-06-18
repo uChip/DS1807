@@ -30,13 +30,11 @@ DS1807::DS1807(uint8_t address) {
 }
 
 /** Power on and prepare for general usage.
- * This device is ready to use automatically upon power-up. It defaults to
- * TCON all functions enabled, WIPER at MID scale. The begin() function sets
- * these same values since a microcontroller reset did not necessarily restart the device.
+ * Sets wiper position to 1 above mute and zero crossing activated.
  */
 void DS1807::begin() {
-  //setTCON(DS1807_TCON_ALL_EN);	// enable all functions
-  setWiper(DS1807_WIPER_MID);	// set to mid scale
+  activateZC(); //turn on zero crossing
+  setBothWipers((uint8_t)DS1807_WIPER_MIN);	// 1 above mute
 }
 
 /** Verify the I2C connection.
@@ -49,41 +47,58 @@ bool DS1807::testConnection() {
 }
 
 /** Set Wiper value
- * valid range is 0x000 = B to 0x100 = A
- * setting wiper in the range 0x101 to 0x3FF will lock wiper at A w/ inc & dec disabled
+ * valid range is 0x00 = H to 0x40 = L
  */
-bool DS1807::setWiper(uint16_t value) {
+bool DS1807::setBothWipers(uint16_t value) {
   Wire.beginTransmission(devAddr);
-  uint8_t temp = ((value >> 8 & 0x01) | DS1807_CMD_WRITE);
-  Wire.write(temp);
-  temp = (value & 0xFF);
+  Wire.write((uint8_t)DS1807_CMD_WRBOTH);
+  uint8_t temp = (value & 0xFF);
   Wire.write(temp);
   return (Wire.endTransmission() == 0);
 }
  
-/** Increment Wiper value (one step closer to A)
- * will not increment past 0x100
+/** Set Wiper value
+ * valid range is 0x00 = H to 0x40 = L
  */
-bool DS1807::incWiper() {
+bool DS1807::setBothWipers(uint8_t value) {
   Wire.beginTransmission(devAddr);
-  Wire.write(DS1807_CMD_INC);
+  Wire.write((uint8_t)DS1807_CMD_WRBOTH);
+  Wire.write(value);
   return (Wire.endTransmission() == 0);
 }
- 
-/** Decrement Wiper value (one step closer to B)
- * will not decrement past 0x000
+  
+/** Set Wiper0 value
+ * valid range is 0x00 = H to 0x40 = L
  */
-bool DS1807::decWiper() {
+bool DS1807::setWiper0(uint8_t value) {
   Wire.beginTransmission(devAddr);
-  Wire.write(DS1807_CMD_DEC);
+  Wire.write((uint8_t)DS1807_CMD_WRPOT0);
+  Wire.write(value);
   return (Wire.endTransmission() == 0);
 }
- 
-/** Read Wiper value
+  
+/** Set Wiper1 value
+ * valid range is 0x00 = H to 0x40 = L
  */
-int16_t DS1807::getWiper() {
+bool DS1807::setWiper1(uint8_t value) {
   Wire.beginTransmission(devAddr);
-  Wire.write(DS1807_CMD_READ);
+  Wire.write((uint8_t)DS1807_CMD_WRPOT1);
+  Wire.write(value);
+  return (Wire.endTransmission() == 0);
+}
+  
+/** Turn on zero crossing detection
+ */
+bool DS1807::activateZC(void){
+  Wire.beginTransmission(devAddr);
+  Wire.write((uint8_t)DS1807_CMD_ACT_ZC);
+  return (Wire.endTransmission() == 0);  // returns true if no errors
+}
+
+/** Read Both Wiper values
+ */
+uint8_t DS1807::getWipers() {
+  Wire.beginTransmission(devAddr);
   if(Wire.endTransmission() == 0) {
     if(Wire.requestFrom(devAddr, (uint8_t) 2) == 2) {
       buffer = Wire.read();
