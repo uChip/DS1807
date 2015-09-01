@@ -29,7 +29,7 @@
 #include <Wire.h>
 
 // I2C Address of device
-#define DS1807_DEFAULT_ADDRESS	0x50	// A0,A1 & A2 are connected to GND
+#define DS1807_DEFAULT_ADDRESS	0x28	// A0,A1 & A2 are connected to GND
 
 // Command definitions
 #define DS1807_CMD_WRPOT0	0xA9
