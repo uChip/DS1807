@@ -96,6 +96,8 @@ bool DS1807::activateZC(void){
 }
 
 /** Read Both Wiper values
+ *  Clearly this is never used since there are a few errors.
+ *  Needs further work.
  */
 uint8_t DS1807::getWipers() {
   Wire.beginTransmission(devAddr);
@@ -104,10 +106,10 @@ uint8_t DS1807::getWipers() {
       buffer = Wire.read();
       buffer <<= 8;
       buffer |= Wire.read();
-      return buffer;
+      return buffer;  // <- returning two bytes in an 8-bit storage? Won't work!
     }
-    else return -1;
+    else return -1;  // return defined as unsigned.  Won't work!
   }
-  else return -1;
+  else return -1;    // return defined as unsigned.  Won't work!
 }
 
